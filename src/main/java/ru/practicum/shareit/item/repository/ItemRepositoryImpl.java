@@ -34,19 +34,19 @@ public class ItemRepositoryImpl implements ItemRepository {
     public Item updateItem(long userId, long itemId, Item item, boolean isDefinedAvailable) {
         item.setId(itemId);
         //В полях не переданных для обновления сохраняем прежние значения
-        if (item.getName() == null) {
+        if(item.getName() == null) {
             item.setName(items.get(itemId).getName());
         }
-        if (item.getDescription() == null) {
+        if(item.getDescription() == null) {
             item.setDescription(items.get(itemId).getDescription());
         }
-        if (item.getOwner() == null) {
+        if(item.getOwner() == null) {
             item.setOwner(items.get(itemId).getOwner());
         }
-        if (item.getRequest() == null) {
+        if(item.getRequest() == null) {
             item.setRequest(items.get(itemId).getRequest());
         }
-        if (isDefinedAvailable) {
+        if(isDefinedAvailable) {
             item.setAvailable(item.isAvailable());
         } else {
             item.setAvailable(items.get(itemId).isAvailable());

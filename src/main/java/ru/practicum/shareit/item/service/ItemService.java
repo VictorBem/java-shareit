@@ -24,7 +24,7 @@ public class ItemService {
     private final UserRepository userRepository;
 
     private static final boolean AVAILABLE_IS_NOT_DEFINED = false;
-    private static final boolean AVAILABLE_IS_DEFINED =  true;
+    private static final boolean AVAILABLE_IS_DEFINED = true;
 
     public ItemService(ItemRepository itemRepository, UserRepository userRepository) {
         this.itemRepository = itemRepository;
@@ -43,10 +43,10 @@ public class ItemService {
         }
         //Определяем пользователя создающего вещь
         User currentUser = userRepository.getAll()
-                                         .stream()
-                                         .filter(u -> u.getId() == userId)
-                                         .findFirst()
-                                         .orElseThrow();
+                .stream()
+                .filter(u -> u.getId() == userId)
+                .findFirst()
+                .orElseThrow();
 
         //Вызываем метод создания новой вещи в базе данных
         Item createdItem = itemRepository.addItem(currentUser, ItemMapper.toItem(item));
@@ -75,7 +75,7 @@ public class ItemService {
 
 
     //Получение вещи по id
-    public ItemResponseDto getById (long itemId) {
+    public ItemResponseDto getById(long itemId) {
         return ItemResponseMapper.toItemDto(itemRepository.getById(itemId));
     }
 
@@ -86,13 +86,13 @@ public class ItemService {
             throw new NoSuchElementException("User with id: " + userId + " is not exist.");
         }
         return itemRepository.getItemsOfOwner(userId).stream()
-                                                     .map(ItemResponseMapper::toItemDto)
-                                                     .collect(Collectors.toList());
+                .map(ItemResponseMapper::toItemDto)
+                .collect(Collectors.toList());
     }
 
     //Получение списка доступных вещей по тексту входящему в название или описание
     public List<ItemResponseDto> getItemsWithText(String searchText) {
-        if(searchText.isBlank()) {
+        if (searchText.isBlank()) {
             return new ArrayList<>();
         }
 
