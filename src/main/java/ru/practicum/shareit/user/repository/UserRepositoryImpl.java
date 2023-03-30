@@ -9,10 +9,9 @@ import java.util.*;
 
 
 @Repository
-@Data
 @Slf4j
 public class UserRepositoryImpl implements UserRepository {
-    private Map<Long, User> users = new HashMap<>();
+    private final Map<Long, User> users = new HashMap<>();
 
     private long currentUserNumber = 0;
 
@@ -29,7 +28,7 @@ public class UserRepositoryImpl implements UserRepository {
         users.put(user.getId(), user);
         log.info("User with id {} was added.", users.get(user.getId()));
 
-        return users.get(getCurrentUserNumber());
+        return users.get(currentUserNumber);
     }
 
     //Метод обновления пользователя

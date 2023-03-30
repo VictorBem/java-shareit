@@ -12,41 +12,41 @@ import java.util.List;
 @RequestMapping(path = "/users")
 public class UserController {
 
-    private final UserService service;
+    private final UserService userService;
 
-    public UserController(UserService service) {
-        this.service = service;
+    public UserController(UserService userService) {
+        this.userService = userService;
     }
 
     //Запрос всех пользователей
     @GetMapping
     private List<UserDto> getAll() {
-        return service.getAll();
+        return userService.getAll();
     }
 
     //создание пользователя
     @PostMapping
     private UserDto addUser(@Valid @RequestBody UserDto user) {
-        return service.addUser(user);
+        return userService.addUser(user);
     }
 
     //Обновление пользователя
     @PatchMapping("/{id}")
     private UserDto updateUser(@PathVariable("id") long id, @RequestBody UserDto user) {
-        return service.updateUser(id, user);
+        return userService.updateUser(id, user);
     }
 
     //Получение пользователя по id
     @GetMapping("/{id}")
     private UserDto getById(@PathVariable("id") int id) {
-        return service.getById(id);
+        return userService.getById(id);
     }
 
 
     //Метод удаляет пользователя по его id
     @DeleteMapping("/{id}")
     private void deleteById(@PathVariable("id") int id) {
-        service.deleteById(id);
+        userService.deleteById(id);
     }
 
 }

@@ -11,7 +11,6 @@ import java.time.LocalDateTime;
 
 
 @Data
-@RequiredArgsConstructor
 @AllArgsConstructor
 @Builder
 public class Booking {

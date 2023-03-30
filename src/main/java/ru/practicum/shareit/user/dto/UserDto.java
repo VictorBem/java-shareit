@@ -9,7 +9,6 @@ import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 
 @Data
-@RequiredArgsConstructor
 @AllArgsConstructor
 @Builder
 public class UserDto {
