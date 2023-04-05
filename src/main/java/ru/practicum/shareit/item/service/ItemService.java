@@ -3,6 +3,7 @@ package ru.practicum.shareit.item.service;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.booking.model.LastNextBooking;
+import ru.practicum.shareit.booking.model.StatusOfBooking;
 import ru.practicum.shareit.booking.repository.BookingRepository;
 import ru.practicum.shareit.comment.dto.CommentDto;
 import ru.practicum.shareit.comment.dto.CommentResponseDto;
@@ -31,8 +32,9 @@ public class ItemService {
     private final ItemRepository itemRepository;
     private final UserRepository userRepository;
     private final BookingRepository bookingRepository;
-
     private final CommentRepository commentRepository;
+
+    private static final int ONLY_ONE_BOOKING = 1;
 
     public ItemService(ItemRepository itemRepository,
                        UserRepository userRepository,
@@ -103,7 +105,7 @@ public class ItemService {
         //Определяем текущую вещь
         ItemResponseDto currentItem = ItemResponseMapper.toItemDto(itemRepository.findById(itemId).orElseThrow());
 
-        if(userId == 6 && itemId == 4){
+        if(userId == 1 && itemId == 1){
             log.info("Проверка параметров");
         }
 
@@ -118,9 +120,17 @@ public class ItemService {
         if (bookingRepository.getLastBooking(itemId, userId) != null && bookingRepository.getLastBooking(itemId, userId).size() > 0) {
             currentItem.setLastBooking(new LastNextBooking(bookingRepository.getLastBooking(itemId, userId).get(0).getId(),
                                                            bookingRepository.getLastBooking(itemId, userId).get(0).getBooker().getId()));
+        } else if (bookingRepository.countBookingsByItemIdAndItemOwnerId(itemId, userId) == ONLY_ONE_BOOKING) {
+            //Если было только одно бронирование, то считаем его последним
+            if (bookingRepository.getBookingByItemIdAndItemOwnerId(itemId, userId).getStatus() == StatusOfBooking.APPROVED) {
+                currentItem.setLastBooking(new LastNextBooking(bookingRepository.getBookingByItemIdAndItemOwnerId(itemId, userId).getId(),
+                                                               bookingRepository.getBookingByItemIdAndItemOwnerId(itemId, userId).getBooker().getId()));
+            }
         } else {
             currentItem.setLastBooking(null);
         }
+
+
         //Добавляем комментарии
         if (commentRepository.getAllByItemId(itemId).size() > 0) {
             currentItem.setComments(commentRepository.getAllByItemId(itemId).stream()
