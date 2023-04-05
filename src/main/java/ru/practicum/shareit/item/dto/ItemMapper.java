@@ -15,20 +15,21 @@ public class ItemMapper {
                 item.getDescription(),
                 item.isAvailable() ? "true" : "false",
                 item.getOwner(),
-                item.getRequest() != null ? item.getRequest() : null
+                item.getRequest()
         );
+
     }
 
     //Метод из DTO-объекта создает объекта модели
     public static Item toItem(ItemDto itemDto) {
-        return new Item(
-                itemDto.getId(),
-                itemDto.getName(),
-                itemDto.getDescription(),
-                itemDto.getAvailable() != null && (itemDto.getAvailable().equals("true")),
-                itemDto.getOwner(),
-                itemDto.getRequest() != null ? itemDto.getRequest() : null
-        );
+        Item item = new Item();
+        item.setId(itemDto.getId());
+        item.setName(itemDto.getName());
+        item.setDescription(itemDto.getDescription());
+        item.setAvailable(itemDto.getAvailable() != null && (itemDto.getAvailable().equals("true")));
+        item.setOwner(itemDto.getOwner());
+        item.setRequest(itemDto.getRequest());
+        return item;
     }
 
 }

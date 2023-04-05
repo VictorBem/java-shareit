@@ -1,6 +1,8 @@
 package ru.practicum.shareit.item.controller;
 
 import org.springframework.web.bind.annotation.*;
+import ru.practicum.shareit.comment.dto.CommentDto;
+import ru.practicum.shareit.comment.dto.CommentResponseDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemResponseDto;
 import ru.practicum.shareit.item.service.ItemService;
@@ -37,8 +39,9 @@ public class ItemController {
 
     //Запрос вещи по ее id
     @GetMapping("/{id}")
-    private ItemResponseDto getById(@PathVariable("id") int id) {
-        return itemService.getById(id);
+    private ItemResponseDto getById(@PathVariable("id") long itemId,
+                                    @RequestHeader(value = "X-Sharer-User-Id", required = true) long userId) {
+        return itemService.getById(userId, itemId);
     }
 
     //Запрос по id владельца перечня всех вещей
@@ -51,5 +54,13 @@ public class ItemController {
     @GetMapping("/search")
     private List<ItemResponseDto> searchItem(@RequestParam(value = "text", required = true) @NotBlank @NotEmpty String searchText) {
         return itemService.getItemsWithText(searchText);
+    }
+
+    //Добавление комментария
+    @PostMapping("/{itemId}/comment")
+    private CommentResponseDto addComment(@RequestHeader(value = "X-Sharer-User-Id", required = true) long userId,
+                                          @PathVariable("itemId") long itemId,
+                                          @RequestBody CommentDto commentDto) {
+        return itemService.addComment(userId, itemId, commentDto);
     }
 }

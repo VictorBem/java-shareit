@@ -9,18 +9,16 @@ public class ItemRequestMapper {
         return new ItemRequestDto(
                 itemRequest.getId(),
                 itemRequest.getDescription(),
-                itemRequest.getRequestor(),
-                itemRequest.getCreated()
+                itemRequest.getRequestor()
         );
     }
 
     //Метод из DTO-объекта создает объекта модели
     public static ItemRequest toUser(ItemRequestDto itemRequestDto) {
-        return new ItemRequest(
-                itemRequestDto.getId(),
-                itemRequestDto.getDescription(),
-                itemRequestDto.getRequestor(),
-                itemRequestDto.getCreated()
-        );
+        ItemRequest itemRequest = new ItemRequest();
+        itemRequest.setId(itemRequestDto.getId());
+        itemRequest.setDescription(itemRequestDto.getDescription());
+        itemRequest.setRequestor(itemRequest.getRequestor());
+        return itemRequest;
     }
 }
