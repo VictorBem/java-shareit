@@ -1,5 +1,6 @@
 package ru.practicum.shareit.booking.service;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.booking.dto.BookingDto;
@@ -20,20 +21,12 @@ import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
 @Slf4j
+@RequiredArgsConstructor
 @Service
 public class BookingService {
     private final BookingRepository bookingRepository;
     private final ItemRepository itemRepository;
-
     private final UserRepository userRepository;
-
-    public BookingService(BookingRepository bookingRepository,
-                          ItemRepository itemRepository,
-                          UserRepository userRepository) {
-        this.bookingRepository = bookingRepository;
-        this.itemRepository = itemRepository;
-        this.userRepository = userRepository;
-    }
 
     //Метод создания нового бронирования
     public BookingResponseDto addBooking(long userId, BookingDto bookingDto) {

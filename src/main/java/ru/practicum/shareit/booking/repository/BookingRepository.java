@@ -98,7 +98,10 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     //Метод возвращает количество бронирований вещи
     long countBookingsByItemIdAndItemOwnerId(long itemId, long ownerId);
 
-
     Booking getBookingByItemIdAndItemOwnerId(long itemId, long ownerId);
+
+    @Query("select b from Booking b " +
+            "where b.item.id in ?1 " )
+    List<Booking> getBookingsByItemsId(List<Long> items);
 
 }

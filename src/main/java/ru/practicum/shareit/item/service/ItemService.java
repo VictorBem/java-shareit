@@ -1,7 +1,9 @@
 package ru.practicum.shareit.item.service;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.LastNextBooking;
 import ru.practicum.shareit.booking.model.StatusOfBooking;
 import ru.practicum.shareit.booking.repository.BookingRepository;
@@ -22,29 +24,20 @@ import ru.practicum.shareit.user.repository.UserRepository;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
 @Slf4j
+@RequiredArgsConstructor
 @Service
 public class ItemService {
     private final ItemRepository itemRepository;
     private final UserRepository userRepository;
     private final BookingRepository bookingRepository;
     private final CommentRepository commentRepository;
-
     private static final int ONLY_ONE_BOOKING = 1;
-
-    public ItemService(ItemRepository itemRepository,
-                       UserRepository userRepository,
-                       BookingRepository bookingRepository,
-                       CommentRepository commentRepository) {
-        this.itemRepository = itemRepository;
-        this.userRepository = userRepository;
-        this.bookingRepository = bookingRepository;
-        this.commentRepository = commentRepository;
-    }
 
     //Метод добавления новой вещи в базу
     public ItemResponseDto addItem(long userId, ItemDto item) {
@@ -105,10 +98,6 @@ public class ItemService {
         //Определяем текущую вещь
         ItemResponseDto currentItem = ItemResponseMapper.toItemDto(itemRepository.findById(itemId).orElseThrow());
 
-        if(userId == 1 && itemId == 1){
-            log.info("Проверка параметров");
-        }
-
         //Добавляем даты следующего и предыдущего бронирования, но только в том случае, если бронирования есть
         if (bookingRepository.getNextBooking(itemId, userId) != null && bookingRepository.getNextBooking(itemId, userId).size() > 0) {
             currentItem.setNextBooking(new LastNextBooking(bookingRepository.getNextBooking(itemId, userId).get(0).getId(),
@@ -151,11 +140,53 @@ public class ItemService {
             throw new NoSuchElementException("User with id: " + userId + " is not exist.");
         }
 
+        if(userId == 4) {
+            log.info("Проверка параметров");
+        }
+
+        //Получаем список всех вещей владельца
         List<ItemResponseDto> resultItems = itemRepository.findItemByOwnerIdOrderByIdAsc(userId).stream()
-                .map(ItemResponseMapper::toItemDto)
-                .collect(Collectors.toList());
-        //Обогащаем данными о предыдущем и последующем бронировании.
+                                                                                                .map(ItemResponseMapper::toItemDto)
+                                                                                                .collect(Collectors.toList());
+        //Получаем информацию обо всех бронированиях вещах владельца
+        List<Booking> bookingsOfOwner= bookingRepository.getBookingsByItemsId(itemRepository.findItemByOwnerIdOrderByIdAsc(userId).stream().map(Item::getId).collect(Collectors.toList()));
         for (ItemResponseDto currentItem : resultItems) {
+            //Определяем следующее бронирование для вещи
+            long currentItemId = currentItem.getId();
+            if (bookingsOfOwner.stream().filter(i -> i.getItem().getId() == currentItemId && i.getStatus() == StatusOfBooking.APPROVED).count() > 0) {
+                Booking nextBooking = bookingsOfOwner.stream()
+                        .filter(i -> i.getItem().getId() == currentItemId)
+                        .filter(i -> i.getStatus() == StatusOfBooking.APPROVED)
+                        .filter(i -> i.getStart().isAfter(LocalDateTime.now())).min(new Comparator<Booking>() {
+                            @Override
+                            public int compare(Booking o1, Booking o2) {
+                                return o1.getStart().isBefore(o2.getStart()) ? -1 : o1.getStart().isEqual(o2.getStart()) ? 0 : 1;
+                            }
+                        }).orElseThrow();
+                currentItem.setNextBooking(new LastNextBooking(nextBooking.getId(), nextBooking.getBooker().getId()));
+            } else {
+                currentItem.setNextBooking(null);
+            }
+
+            //Определяем последнее бронирование вещи
+            if (bookingsOfOwner.stream().filter(i -> i.getItem().getId() == currentItemId && i.getStatus() == StatusOfBooking.APPROVED).count() > 0) {
+                Booking lastBooking = bookingsOfOwner.stream()
+                        .filter(i -> i.getItem().getId() == currentItemId)
+                        .filter(i -> i.getStatus() == StatusOfBooking.APPROVED)
+                        .filter(i -> i.getStart().isBefore(LocalDateTime.now())).max(new Comparator<Booking>() {
+                            @Override
+                            public int compare(Booking o1, Booking o2) {
+                                return o1.getStart().isBefore(o2.getStart()) ? 1 : o1.getStart().isEqual(o2.getStart()) ? 0 : -1;
+                            }
+                        }).orElseThrow();
+                currentItem.setLastBooking(new LastNextBooking(lastBooking.getId(), lastBooking.getBooker().getId()));
+            } else {
+                currentItem.setLastBooking(null);
+            }
+            finalItems.add(currentItem);
+        }
+        //Обогащаем данными о предыдущем и последующем бронировании.
+        /*for (ItemResponseDto currentItem : resultItems) {
             long currentItemId = currentItem.getId();
             if (bookingRepository.getNextBooking(currentItemId, userId) != null && bookingRepository.getNextBooking(currentItemId, userId).size() > 0) {
                 currentItem.setNextBooking(new LastNextBooking(bookingRepository.getNextBooking(currentItemId, userId).get(0).getId(),
@@ -171,7 +202,7 @@ public class ItemService {
                 currentItem.setLastBooking(null);
             }
             finalItems.add(currentItem);
-        }
+        }*/
 
         return finalItems;
     }
