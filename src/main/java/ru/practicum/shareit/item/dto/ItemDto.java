@@ -3,6 +3,7 @@ package ru.practicum.shareit.item.dto;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
+import lombok.NoArgsConstructor;
 import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.user.model.User;
 
@@ -11,6 +12,7 @@ import javax.validation.constraints.NotBlank;
 
 @Data
 @AllArgsConstructor
+@NoArgsConstructor
 public class ItemDto {
     private long id;
     @NotBlank

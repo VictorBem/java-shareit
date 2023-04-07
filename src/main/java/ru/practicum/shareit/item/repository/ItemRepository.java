@@ -1,27 +1,26 @@
 package ru.practicum.shareit.item.repository;
 
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import ru.practicum.shareit.item.model.Item;
-import ru.practicum.shareit.user.model.User;
 
 import java.util.List;
 
-public interface ItemRepository {
-    //Метод добавления новой вещи в БД
-    Item addItem(User user, Item item);
+public interface ItemRepository extends JpaRepository<Item, Long> {
 
-    //Метод получения списка вообще всех вещей
-    List<Item> getAll();
+    //Поиск вещи по ID владельца
+    List<Item> findItemByOwnerIdOrderByIdAsc(long ownerId);
 
-    //Метод получения вещи по ее id
-    Item getById(long id);
+    //Поиск любой (доступной или не доступной) вещи по части наименования или описания
+    @Query(" select i from Item i " +
+           "where upper(i.name) like upper(concat('%', ?1, '%')) " +
+           "   or upper(i.description) like upper(concat('%', ?1, '%'))")
+    List<Item> search(String text);
 
-    //Метод обновления вещи
-    Item updateItem(long userId, long itemId, Item item, boolean isDefinedAvailable);
-
-    //Метод получения списка вещей по id владельца
-    List<Item> getItemsOfOwner(long userId);
-
-    //Метод получения списка вещей название или описание которых включает определенный текст
-    List<Item> getItemsWithText(String searchText);
-
+    //Поиск доступной вещи по части наименования или описания
+    @Query(" select i from Item i " +
+            "where upper(i.name) like upper(concat('%', ?1, '%')) " +
+            "   or upper(i.description) like upper(concat('%', ?1, '%')) " +
+            "  and i.available = true ")
+    List<Item> searchAvailableItemsByText(String text);
 }

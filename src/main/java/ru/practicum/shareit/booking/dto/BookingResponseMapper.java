@@ -5,10 +5,10 @@ import lombok.NoArgsConstructor;
 import ru.practicum.shareit.booking.model.Booking;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class BookingMapper {
+public class BookingResponseMapper {
     //Метод из объекта модели создает DTO-объект
-    public static BookingDto toBookingDto(Booking booking) {
-        return new BookingDto(
+    public static BookingResponseDto toBookingResponseDto(Booking booking) {
+        return new BookingResponseDto(
                 booking.getId(),
                 booking.getStart(),
                 booking.getEnd(),
@@ -19,13 +19,14 @@ public class BookingMapper {
     }
 
     //Метод из DTO-объекта создает объекта модели
-    public static Booking toBooking(BookingDto bookingDto) {
+    public static Booking toBooking(BookingResponseDto bookingResponseDto) {
         Booking booking = new Booking();
-        booking.setStart(bookingDto.getStart());
-        booking.setEnd(bookingDto.getEnd());
-        booking.setItem(bookingDto.getItem());
-        booking.setBooker(bookingDto.getBooker());
-        booking.setStatus(bookingDto.getStatus());
+        booking.setId(bookingResponseDto.getId());
+        booking.setStart(bookingResponseDto.getStart());
+        booking.setEnd(bookingResponseDto.getEnd());
+        booking.setItem(bookingResponseDto.getItem());
+        booking.setBooker(bookingResponseDto.getBooker());
+        booking.setStatus(bookingResponseDto.getStatus());
         return booking;
     }
 }
