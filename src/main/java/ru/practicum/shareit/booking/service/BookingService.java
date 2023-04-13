@@ -2,6 +2,8 @@ package ru.practicum.shareit.booking.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.dto.BookingMapper;
@@ -14,8 +16,10 @@ import ru.practicum.shareit.exception.BadRequestException;
 import ru.practicum.shareit.exception.UnsupportedStatusException;
 import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.user.repository.UserRepository;
+import ru.practicum.shareit.utility.PageableUtility;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
@@ -118,46 +122,62 @@ public class BookingService {
         }
     }
 
-    public List<BookingResponseDto> findAllBookingByUserId(long userId, String state) {
+    public List<BookingResponseDto> findAllBookingByUserId(long userId, String state, Integer from, Integer size) {
         //Проверка на существование пользователя
+        PageRequest currentPageRequest = null;
         if (!userRepository.existsById(userId)) {
             log.info("User with id: {} is not exist.", userId);
             throw new NoSuchElementException("User with id: " + userId + " is not exist.");
+        } else if (from == null || size == null) {
+            currentPageRequest = PageRequest.of(0, (int) bookingRepository.count(), Sort.by("start").descending());
+        } else if (from < PageableUtility.MINIMUM_INDEX_OF_START_POSITION) {
+            //Можно сформировать список бронирований только начиная с 0, отрицательные значения не допустимы
+            log.info("Start position couldn't be negative, it's: {}", from);
+            throw new BadRequestException("Start position couldn't be negative, it's: " + from);
+        } else if (size < PageableUtility.MINIMUM_SIZE_OF_PAGE) {
+            //Страница с бронированиями может минимально содержать один запрос, нулевые или отрицательные значения не допустимы
+            log.info("Page should include at least one booking, now it's: {}", size);
+            throw new BadRequestException("Page should include at least one booking, now it's: " + size);
         }
+
         //Возвращаем бронирования запрошенного статуса
+        if (currentPageRequest == null) {
+            int currentPage = (from / size);
+            currentPageRequest = PageRequest.of(currentPage, size, Sort.by("start").descending());
+        }
         switch (state) {
             case "WAITING": {
-                return bookingRepository.getAllByBookerIdAndStatusOrderByStartDesc(userId, StatusOfBooking.WAITING)
+                return bookingRepository.getAllByBookerIdAndStatusOrderByStartDesc(userId, StatusOfBooking.WAITING, currentPageRequest)
                         .stream()
                         .map(BookingResponseMapper::toBookingResponseDto)
                         .collect(Collectors.toList());
             }
             case "REJECTED": {
-                return bookingRepository.getAllByBookerIdAndStatusOrderByStartDesc(userId, StatusOfBooking.REJECTED)
+                return bookingRepository.getAllByBookerIdAndStatusOrderByStartDesc(userId, StatusOfBooking.REJECTED, currentPageRequest)
                         .stream()
                         .map(BookingResponseMapper::toBookingResponseDto)
                         .collect(Collectors.toList());
             }
             case "ALL": {
-                return bookingRepository.getAllByBookerIdOrderByStartDesc(userId)
+                return bookingRepository.getAllByBookerIdOrderByStartDesc(userId, currentPageRequest)
                         .stream()
                         .map(BookingResponseMapper::toBookingResponseDto)
                         .collect(Collectors.toList());
             }
             case "CURRENT": {
-                return bookingRepository.getCurrentBookings(userId)
+                return bookingRepository.getCurrentBookings(userId, currentPageRequest)
                         .stream()
                         .map(BookingResponseMapper::toBookingResponseDto)
                         .collect(Collectors.toList());
             }
             case "FUTURE": {
-                return bookingRepository.getFutureBookings(userId)
+                return bookingRepository.getFutureBookings(userId, currentPageRequest)
                         .stream()
                         .map(BookingResponseMapper::toBookingResponseDto)
                         .collect(Collectors.toList());
             }
             case "PAST": {
-                return bookingRepository.getPastBookings(userId)
+                return bookingRepository.getPastBookings(userId, currentPageRequest)
                         .stream()
                         .map(BookingResponseMapper::toBookingResponseDto)
                         .collect(Collectors.toList());
@@ -169,46 +189,63 @@ public class BookingService {
         }
     }
 
-    public List<BookingResponseDto> findAllBookingForAllItems(long userId, String state) {
+    public List<BookingResponseDto> findAllBookingForAllItems(long userId, String state, Integer from, Integer size) {
         //Проверка на существование пользователя
+        PageRequest currentPageRequest = null;
         if (!userRepository.existsById(userId)) {
             log.info("User with id: {} is not exist.", userId);
             throw new NoSuchElementException("User with id: " + userId + " is not exist.");
+        } else if (from == null || size == null) {
+            currentPageRequest = PageRequest.of(0, (int) bookingRepository.count(), Sort.by("start").descending());
         }
+        else if (from < PageableUtility.MINIMUM_INDEX_OF_START_POSITION) {
+            //Можно сформировать список бронирований только начиная с 0, отрицательные значения не допустимы
+            log.info("Start position couldn't be negative, it's: {}", from);
+            throw new BadRequestException("Start position couldn't be negative, it's: " + from);
+        } else if (size < PageableUtility.MINIMUM_SIZE_OF_PAGE) {
+            //Страница с бронированиями может минимально содержать один запрос, нулевые или отрицательные значения не допустимы
+            log.info("Page should include at least one booking, now it's: {}", size);
+            throw new BadRequestException("Page should include at least one booking, now it's: {}" + size);
+        }
+
         //Возвращаем бронирования запрошенного статуса
+        if (currentPageRequest == null) {
+            int currentPage = (from / size);
+            currentPageRequest = PageRequest.of(currentPage, size, Sort.by("start").descending());
+        }
         switch (state) {
             case "WAITING": {
-                return bookingRepository.getAllByItemOwnerIdAndState(userId, StatusOfBooking.WAITING)
+                return bookingRepository.getAllByItemOwnerIdAndState(userId, StatusOfBooking.WAITING, currentPageRequest)
                         .stream()
                         .map(BookingResponseMapper::toBookingResponseDto)
                         .collect(Collectors.toList());
             }
             case "REJECTED": {
-                return bookingRepository.getAllByItemOwnerIdAndState(userId, StatusOfBooking.REJECTED)
+                return bookingRepository.getAllByItemOwnerIdAndState(userId, StatusOfBooking.REJECTED, currentPageRequest)
                         .stream()
                         .map(BookingResponseMapper::toBookingResponseDto)
                         .collect(Collectors.toList());
             }
             case "ALL": {
-                return bookingRepository.getAllByItemOwnerId(userId)
+                return bookingRepository.getAllByItemOwnerId(userId, currentPageRequest)
                         .stream()
                         .map(BookingResponseMapper::toBookingResponseDto)
                         .collect(Collectors.toList());
             }
             case "CURRENT": {
-                return bookingRepository.getCurrentBookingsByItems(userId)
+                return bookingRepository.getCurrentBookingsByItems(userId, currentPageRequest)
                         .stream()
                         .map(BookingResponseMapper::toBookingResponseDto)
                         .collect(Collectors.toList());
             }
             case "FUTURE": {
-                return bookingRepository.getFutureBookingsByItems(userId)
+                return bookingRepository.getFutureBookingsByItems(userId, currentPageRequest)
                         .stream()
                         .map(BookingResponseMapper::toBookingResponseDto)
                         .collect(Collectors.toList());
             }
             case "PAST": {
-                return bookingRepository.getPastBookingsByItems(userId)
+                return bookingRepository.getPastBookingsByItems(userId, currentPageRequest)
                         .stream()
                         .map(BookingResponseMapper::toBookingResponseDto)
                         .collect(Collectors.toList());
@@ -221,7 +258,7 @@ public class BookingService {
     }
 
     //Служебный метод для проверки корректности пользователя и бронирования
-    private boolean checkUserAndBooking(long userId, long bookingId) {
+    private void checkUserAndBooking(long userId, long bookingId) {
         if (!bookingRepository.existsById(bookingId)) {
             log.info("Booking with id: {} is not exist.", bookingId);
             throw new NoSuchElementException("Booking with id: " + bookingId + " is not exist.");
@@ -229,7 +266,6 @@ public class BookingService {
             log.info("User with id: {} is not exist.", userId);
             throw new NoSuchElementException("User with id: " + userId + " is not exist.");
         }
-        return true;
     }
 
 }

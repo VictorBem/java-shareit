@@ -26,7 +26,7 @@ public class ItemController {
     //Добавление вещи
     @PostMapping
     private ItemResponseDto addItem(@RequestHeader(value = "X-Sharer-User-Id", required = true) long userId,
-                            @Valid @RequestBody ItemDto itemDto) {
+                                    @RequestBody ItemDto itemDto) {
         log.info("Post request for new Item by user with id {} ", userId);
         return itemService.addItem(userId, itemDto);
     }
@@ -50,16 +50,20 @@ public class ItemController {
 
     //Запрос по id владельца перечня всех вещей
     @GetMapping()
-    private List<ItemResponseDto> getItemsOfOwner(@RequestHeader(value = "X-Sharer-User-Id", required = true) long userId) {
+    private List<ItemResponseDto> getItemsOfOwner(@RequestHeader(value = "X-Sharer-User-Id", required = true) long userId,
+                                                  @RequestParam(value = "from", required = false) Integer from,
+                                                  @RequestParam(value = "size", required = false) Integer size) {
         log.info("Get list of Items by owner with id {} ", userId);
-        return itemService.getItemsOfOwner(userId);
+        return itemService.getItemsOfOwner(userId, from, size);
     }
 
     //Запрос доступных вещей по тексту в имени или описании
     @GetMapping("/search")
-    private List<ItemResponseDto> searchItem(@RequestParam(value = "text", required = true) @NotBlank @NotEmpty String searchText) {
+    private List<ItemResponseDto> searchItem(@RequestParam(value = "text", required = true) @NotBlank @NotEmpty String searchText,
+                                             @RequestParam(value = "from", required = false) Integer from,
+                                             @RequestParam(value = "size", required = false) Integer size) {
         log.info("Get list of Items by string {} un name or description", searchText);
-        return itemService.getItemsWithText(searchText);
+        return itemService.getItemsWithText(searchText, from, size);
     }
 
     //Добавление комментария
