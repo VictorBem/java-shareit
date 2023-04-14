@@ -14,9 +14,7 @@ import ru.practicum.shareit.request.controller.RequestController;
 import ru.practicum.shareit.request.dto.RequestDto;
 import ru.practicum.shareit.request.dto.ResponseRequestDto;
 import ru.practicum.shareit.request.service.RequestService;
-import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.model.User;
-import ru.practicum.shareit.user.service.UserService;
 
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;

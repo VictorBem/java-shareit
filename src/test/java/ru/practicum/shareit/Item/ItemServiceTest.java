@@ -4,14 +4,19 @@ import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
+import ru.practicum.shareit.booking.model.Booking;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.Pageable;
+import ru.practicum.shareit.booking.model.StatusOfBooking;
+import ru.practicum.shareit.booking.repository.BookingRepository;
 import ru.practicum.shareit.comment.dto.CommentDto;
 import ru.practicum.shareit.comment.dto.CommentResponseDto;
+import ru.practicum.shareit.comment.model.Comment;
+import ru.practicum.shareit.comment.repository.CommentRepository;
 import ru.practicum.shareit.exception.BadRequestException;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemResponseDto;
@@ -25,10 +30,7 @@ import ru.practicum.shareit.user.repository.UserRepository;
 
 import javax.transaction.Transactional;
 import java.time.LocalDateTime;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Optional;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -45,21 +47,28 @@ public class ItemServiceTest {
     RequestRepository requestRepository;
     @MockBean
     ItemRepository itemRepository;
-
+    @MockBean
+    BookingRepository bookingRepository;
+    @MockBean
+    CommentRepository commentRepository;
     private User testUser;
     private User testUser1;
     private Item testItem;
     private Item testItem1;
+    private List<Item> itemsTest;
     private Request testRequest;
     private Request testRequest1;
     private ItemResponseDto itemResponseDto;
     private ItemResponseDto itemResponseDto1;
     private List<ItemResponseDto> items;
     private ItemDto itemDto;
-    private ItemDto itemDto1;
     private CommentDto commentDto;
     private CommentResponseDto commentResponseDto;
+    private Comment comment;
     private Request request;
+    private Booking booking;
+    private Booking booking1;
+    private List<Booking> bookings;
 
     //Добавление новой вещи, если все параметры указаны корректно
     @Test
@@ -420,6 +429,137 @@ public class ItemServiceTest {
         assertEquals(exp.getMessage(), "Item with id: 1 has owner with another id.", "Должно быть выброшено исключение BadRequestException");
     }
 
+    @Test
+    void getItemsOfOwnerIfEverythingIsOk() {
+        prepareDataForTest();
+
+        Mockito
+                .when(userRepository.existsById(Mockito.anyLong()))
+                .thenReturn(true);
+        Mockito
+                .when(itemRepository.count())
+                .thenReturn(2L);
+        Mockito
+                .when(requestRepository.findById(Mockito.anyLong()))
+                .thenReturn(Optional.of(request));
+        Mockito
+                .when(itemRepository.existsById(Mockito.anyLong()))
+                .thenReturn(true);
+        Mockito
+                .when(itemRepository.findById(Mockito.anyLong()))
+                .thenReturn(Optional.of(testItem));
+        Mockito
+                .when(itemRepository.findItemByOwnerIdOrderByIdAsc(Mockito.any(Long.class), Mockito.any(Pageable.class)))
+                .thenReturn(itemsTest);
+
+        List<ItemResponseDto> response = itemService.getItemsOfOwner(2, 1, 999);
+
+        assertEquals(response.get(0).getId(), testItem.getId(), "Созданные вещи не совпадают");
+        assertEquals(response.get(0).getDescription(), testItem.getDescription(), "Созданные вещи не совпадают");
+        assertEquals(response.get(0).getName(), testItem.getName(), "Созданные вещи не совпадают");
+        assertEquals(response.get(0).isAvailable(), testItem.isAvailable(), "Созданные вещи не совпадают");
+        assertEquals(response.get(1).getId(), testItem1.getId(), "Созданные вещи не совпадают");
+        assertEquals(response.get(1).getDescription(), testItem1.getDescription(), "Созданные вещи не совпадают");
+        assertEquals(response.get(1).getName(), testItem1.getName(), "Созданные вещи не совпадают");
+        assertEquals(response.get(1).isAvailable(), testItem1.isAvailable(), "Созданные вещи не совпадают");
+    }
+
+    @Test
+    void getItemsWithTextIfEverythingIsOk() {
+        prepareDataForTest();
+
+        Mockito
+                .when(userRepository.existsById(Mockito.anyLong()))
+                .thenReturn(true);
+        Mockito
+                .when(itemRepository.count())
+                .thenReturn(2L);
+        Mockito
+                .when(requestRepository.findById(Mockito.anyLong()))
+                .thenReturn(Optional.of(request));
+        Mockito
+                .when(itemRepository.existsById(Mockito.anyLong()))
+                .thenReturn(true);
+        Mockito
+                .when(itemRepository.findById(Mockito.anyLong()))
+                .thenReturn(Optional.of(testItem));
+        Mockito
+                .when(itemRepository.searchAvailableItemsByText(Mockito.any(String.class), Mockito.any(Pageable.class)))
+                .thenReturn(itemsTest);
+
+        List<ItemResponseDto> response = itemService.getItemsWithText("test", 0, 999);
+
+        assertEquals(response.get(0).getId(), testItem.getId(), "Созданные вещи не совпадают");
+        assertEquals(response.get(0).getDescription(), testItem.getDescription(), "Созданные вещи не совпадают");
+        assertEquals(response.get(0).getName(), testItem.getName(), "Созданные вещи не совпадают");
+        assertEquals(response.get(0).isAvailable(), testItem.isAvailable(), "Созданные вещи не совпадают");
+        assertEquals(response.get(1).getId(), testItem1.getId(), "Созданные вещи не совпадают");
+        assertEquals(response.get(1).getDescription(), testItem1.getDescription(), "Созданные вещи не совпадают");
+        assertEquals(response.get(1).getName(), testItem1.getName(), "Созданные вещи не совпадают");
+        assertEquals(response.get(1).isAvailable(), testItem1.isAvailable(), "Созданные вещи не совпадают");
+    }
+
+    @Test
+    void addCommentIfEverythingIsOk() {
+        prepareDataForTest();
+
+        Mockito
+                .when(userRepository.existsById(Mockito.anyLong()))
+                .thenReturn(true);
+        Mockito
+                .when(bookingRepository.getAllByBookerIdAndItemIdAndEndIsBefore(Mockito.anyLong(), Mockito.anyLong(), Mockito.any(LocalDateTime.class)))
+                .thenReturn(bookings);
+        Mockito
+                .when(itemRepository.findById(Mockito.anyLong()))
+                .thenReturn(Optional.of(testItem));
+        Mockito
+                .when(userRepository.findById(Mockito.anyLong()))
+                .thenReturn(Optional.of(testUser));
+        Mockito
+                .when(itemRepository.findById(Mockito.anyLong()))
+                .thenReturn(Optional.of(testItem));
+        Mockito
+                .when(commentRepository.save(Mockito.any(Comment.class)))
+                .thenReturn(comment);
+
+        CommentResponseDto response = itemService.addComment(1, 1, commentDto);
+
+        assertEquals(response.getText(), commentDto.getText(), "Созданные вещи не совпадают");
+    }
+
+    @Test
+    void getByIdIfEverythingIsOk() {
+        prepareDataForTest();
+
+        Mockito
+                .when(userRepository.existsById(Mockito.anyLong()))
+                .thenReturn(true);
+        Mockito
+                .when(itemRepository.existsById(Mockito.anyLong()))
+                .thenReturn(true);
+        Mockito
+                .when(itemRepository.findById(Mockito.anyLong()))
+                .thenReturn(Optional.of(testItem));
+        Mockito
+                .when(bookingRepository.getNextBooking(Mockito.anyLong(), Mockito.anyLong()))
+                .thenReturn(null);
+        Mockito
+                .when(bookingRepository.countBookingsByItemIdAndItemOwnerId(Mockito.anyLong(), Mockito.anyLong()))
+                .thenReturn(999L);
+        Mockito
+                .when(commentRepository.getAllByItemId(Mockito.anyLong()))
+                .thenReturn(new ArrayList<>());
+
+
+        ItemResponseDto response = itemService.getById(1, 1);
+
+        assertEquals(response.getId(), testItem.getId(), "Созданные вещи не совпадают");
+        assertEquals(response.getName(), testItem.getName(), "Созданные вещи не совпадают");
+        assertEquals(response.getDescription(), testItem.getDescription(), "Созданные вещи не совпадают");
+        assertEquals(response.getOwner(), testItem.getOwner(), "Созданные вещи не совпадают");
+        assertEquals(response.getRequestId(), testItem.getRequest().getId(), "Созданные вещи не совпадают");
+    }
+
     private void prepareDataForTest() {
         //Создаем пользователя для теста
         testUser = new User();
@@ -437,13 +577,13 @@ public class ItemServiceTest {
         testRequest = new Request();
         testRequest.setId(1);
         testRequest.setRequestor(testUser1);
-        testRequest.setCreated(LocalDateTime.of(2023, 04, 11, 20, 23));
+        testRequest.setCreated(LocalDateTime.of(2023, 4, 11, 20, 23));
         testRequest.setDescription("I need test Item)))");
 
         testRequest1 = new Request();
         testRequest1.setId(2);
         testRequest1.setRequestor(testUser1);
-        testRequest1.setCreated(LocalDateTime.of(2023, 04, 11, 20, 23));
+        testRequest1.setCreated(LocalDateTime.of(2023, 4, 11, 20, 23));
         testRequest1.setDescription("I need test Item)))");
 
         //Создаем вещь для теста
@@ -463,6 +603,10 @@ public class ItemServiceTest {
         testItem1.setAvailable(true);
         testItem1.setRequest(testRequest1);
 
+        itemsTest = new ArrayList<>();
+        itemsTest.add(testItem);
+        itemsTest.add(testItem1);
+
         //DTO для запроса
         itemDto = new ItemDto(1,
                 "Test ItemDto",
@@ -481,13 +625,6 @@ public class ItemServiceTest {
                 null,
                 null);
 
-        itemDto1 = new ItemDto(1,
-                "Test ItemDto1",
-                "Description ItemDto1",
-                "false",
-                testUser,
-                testRequest.getId());
-
         itemResponseDto1 = new ItemResponseDto(1,
                 "Test ItemDto1",
                 "Description ItemDto1",
@@ -505,6 +642,13 @@ public class ItemServiceTest {
         request.setCreated(LocalDateTime.of(2023, 3, 1, 11, 23));
 
         //Создаем DTO для комментария
+        comment = new Comment();
+        comment.setId(1);
+        comment.setText("Test Comment 1");
+        comment.setItem(testItem);
+        comment.setCreated(LocalDateTime.of(2023, 4, 10, 22, 1));
+        comment.setAuthor(testUser);
+
         commentDto = new CommentDto();
         commentDto.setText("Test Comment 1");
 
@@ -512,11 +656,32 @@ public class ItemServiceTest {
         commentResponseDto.setId(1);
         commentResponseDto.setText("Test Comment 1");
         commentResponseDto.setItem(testItem);
-        commentResponseDto.setCreated(LocalDateTime.of(2023, 04, 10, 22, 00));
+        commentResponseDto.setCreated(LocalDateTime.of(2023, 4, 10, 22, 1));
         commentResponseDto.setAuthorName("Test User");
 
         items = new LinkedList<>();
         items.add(itemResponseDto);
         items.add(itemResponseDto1);
+
+        //Бронирования
+        booking = new Booking();
+        booking.setId(1);
+        booking.setItem(testItem);
+        booking.setStatus(StatusOfBooking.APPROVED);
+        booking.setStart(LocalDateTime.of(1999,1,1,1,1));
+        booking.setEnd(LocalDateTime.of(2000,1,1,1,1));
+        booking.setBooker(testUser);
+
+        booking1 = new Booking();
+        booking1.setId(1);
+        booking1.setItem(testItem);
+        booking1.setStatus(StatusOfBooking.APPROVED);
+        booking1.setStart(LocalDateTime.of(1999,1,1,1,1));
+        booking1.setEnd(LocalDateTime.of(2000,1,1,1,1));
+        booking1.setBooker(testUser);
+
+        bookings = new ArrayList<>();
+        bookings.add(booking);
+        bookings.add(booking1);
     }
 }
