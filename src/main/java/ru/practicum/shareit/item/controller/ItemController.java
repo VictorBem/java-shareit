@@ -59,7 +59,7 @@ public class ItemController {
 
     //Запрос доступных вещей по тексту в имени или описании
     @GetMapping("/search")
-    private List<ItemResponseDto> searchItem(@RequestParam(value = "text", required = true) @NotBlank @NotEmpty String searchText,
+    private List<ItemResponseDto> searchItem(@RequestParam(value = "text", required = true) @NotBlank String searchText,
                                              @RequestParam(value = "from", required = false) Integer from,
                                              @RequestParam(value = "size", required = false) Integer size) {
         log.info("Get list of Items by string {} un name or description", searchText);

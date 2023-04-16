@@ -1,12 +1,15 @@
 package ru.practicum.shareit.item.dto;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import ru.practicum.shareit.comment.dto.CommentResponseDto;
 import ru.practicum.shareit.item.model.Item;
 
 import java.util.ArrayList;
 
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class ShortItemDtoMapper {
-    private final static long NO_ANY_REQUEST_FOR_ITEM = -1;
+
     //Метод из объекта модели создает DTO-объект
     public static ShortItemDto toShortItemDto(Item item) {
         return new ShortItemDto(

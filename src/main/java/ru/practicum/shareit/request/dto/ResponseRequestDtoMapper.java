@@ -1,7 +1,10 @@
 package ru.practicum.shareit.request.dto;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import ru.practicum.shareit.request.model.Request;
 
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class ResponseRequestDtoMapper {
     //Метод из объекта модели создает DTO-объект
     public static ResponseRequestDto toResponseRequestDto(Request request) {
