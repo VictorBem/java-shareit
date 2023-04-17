@@ -23,6 +23,7 @@ CREATE TABLE IF NOT EXISTS requests (
     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     description varchar(1000),
     requestor_id BIGINT,
+    created TIMESTAMP WITHOUT TIME ZONE,
     CONSTRAINT items_to_users_fk_1
     FOREIGN KEY(requestor_id) REFERENCES users(id) ON DELETE RESTRICT);
 

@@ -1,6 +1,6 @@
 package ru.practicum.shareit.item.model;
 
-import ru.practicum.shareit.request.model.ItemRequest;
+import ru.practicum.shareit.request.model.Request;
 import ru.practicum.shareit.user.model.User;
 
 import javax.persistence.*;
@@ -19,8 +19,10 @@ public class Item {
     private boolean available;
     @ManyToOne
     private User owner;
-    @OneToOne
-    private ItemRequest request;
+    //Похоже это поле не нужно достаточно сохранить ИД реквестора
+    @ManyToOne
+    private Request request;
+
 
     public long getId() {
         return id;
@@ -62,11 +64,11 @@ public class Item {
         this.owner = owner;
     }
 
-    public ItemRequest getRequest() {
+    public Request getRequest() {
         return request;
     }
 
-    public void setRequest(ItemRequest request) {
+    public void setRequest(Request request) {
         this.request = request;
     }
 }

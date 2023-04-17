@@ -47,7 +47,6 @@ public class UserController {
         return userService.getById(id);
     }
 
-
     //Метод удаляет пользователя по его id
     @DeleteMapping("/{id}")
     private void deleteById(@PathVariable("id") long id) {

@@ -30,7 +30,7 @@ public class ErrorHandler {
     }
 
     @ExceptionHandler({EntityAlreadyExistException.class,
-            IllegalArgumentException.class})
+                       IllegalArgumentException.class})
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ErrorResponse ErrorResponseOtherException(RuntimeException e) {
         log.error("Ошибка: " + e.getMessage());

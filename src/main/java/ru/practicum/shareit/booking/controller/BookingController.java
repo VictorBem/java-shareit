@@ -22,7 +22,7 @@ public class BookingController {
     //Добавление бронирования
     @PostMapping
     private BookingResponseDto addBooking(@RequestHeader(value = "X-Sharer-User-Id", required = true) long userId,
-                                       @RequestBody BookingDto bookingDto) {
+                                          @RequestBody BookingDto bookingDto) {
         log.info("Post request to add new booking");
         return bookingService.addBooking(userId, bookingDto);
     }
@@ -44,18 +44,23 @@ public class BookingController {
         return bookingService.findBookingByUserId(bookingId, userId);
     }
 
-    //Получение бронирования по его статусу
+    //Получение бронирования по его статусу с разбиением по страницам
     @GetMapping()
     private List<BookingResponseDto> findAllBookingByUserId(@RequestHeader(value = "X-Sharer-User-Id", required = true) long userId,
-                                                            @RequestParam(value = "state", required = false, defaultValue = "ALL") String state) {
+                                                            @RequestParam(value = "state", required = false, defaultValue = "ALL") String state,
+                                                            @RequestParam(value = "from", required = false) Integer from,
+                                                            @RequestParam(value = "size", required = false) Integer size) {
         log.info("Get list of booking by state: {} .", state);
-        return bookingService.findAllBookingByUserId(userId, state);
+        return bookingService.findAllBookingByUserId(userId, state, from, size);
     }
 
+    //Все бронирования вещей владельца определенного по id
     @GetMapping("/owner")
     private List<BookingResponseDto> findAllBookingForAllItems(@RequestHeader(value = "X-Sharer-User-Id", required = true) long userId,
-                                                               @RequestParam(value = "state", required = false, defaultValue = "ALL") String state) {
+                                                               @RequestParam(value = "state", required = false, defaultValue = "ALL") String state,
+                                                               @RequestParam(value = "from", required = false) Integer from,
+                                                               @RequestParam(value = "size", required = false) Integer size) {
         log.info("Get list of booking by owner: {} .", state);
-        return bookingService.findAllBookingForAllItems(userId, state);
+        return bookingService.findAllBookingForAllItems(userId, state, from, size);
     }
 }
