@@ -48,8 +48,8 @@ public class BookingController {
 	//Обновление бронирования
 	@PatchMapping("/{bookingId}")
 	public ResponseEntity<Object> update(@PathVariable("bookingId") long bookingId,
-									      @RequestHeader(value = "X-Sharer-User-Id", required = true) long userId,
-									      @RequestParam("approved") boolean approved) {
+										 @RequestHeader(value = "X-Sharer-User-Id", required = true) long userId,
+										 @RequestParam("approved") boolean approved) {
 		log.info("Patch request for booking with id: {} .", bookingId);
 		return bookingClient.updateBooking(bookingId, userId, approved);
 	}
@@ -57,9 +57,9 @@ public class BookingController {
 	//Все бронирования вещей владельца определенного по id
 	@GetMapping("/owner")
 	public ResponseEntity<Object> findAllBookingForAllItems(@RequestHeader(value = "X-Sharer-User-Id", required = true) long userId,
-															 @RequestParam(value = "state", required = false, defaultValue = "ALL") String state,
-															 @RequestParam(value = "from", required = false, defaultValue = "0") Integer from,
-															 @RequestParam(value = "size", required = false, defaultValue = "99") Integer size) {
+															@RequestParam(value = "state", required = false, defaultValue = "ALL") String state,
+															@RequestParam(value = "from", required = false, defaultValue = "0") Integer from,
+															@RequestParam(value = "size", required = false, defaultValue = "99") Integer size) {
 		log.info("Get booking with state {}, userId={}, from={}, size={}", state, userId, from, size);
 		return bookingClient.findAllBookingForAllItems(userId, state, from, size);
 	}
