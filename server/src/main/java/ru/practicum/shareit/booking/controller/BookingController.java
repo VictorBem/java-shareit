@@ -52,10 +52,8 @@ public class BookingController {
                                                             @RequestParam(value = "state", required = false, defaultValue = "ALL") String state,
                                                             @RequestParam(value = "from", required = false) Integer from,
                                                             @RequestParam(value = "size", required = false) Integer size) {
-        BookingState stateParam = BookingState.from(state)
-        		.orElseThrow(() -> new UnsupportedStatusException("Unknown state: UNSUPPORTED_STATUS"));
         log.info("Get list of booking by state: {} .", state);
-        return bookingService.findAllBookingByUserId(userId, stateParam, from, size);
+        return bookingService.findAllBookingByUserId(userId, state, from, size);
     }
 
     //Все бронирования вещей владельца определенного по id
@@ -65,8 +63,6 @@ public class BookingController {
                                                                @RequestParam(value = "from", required = false) Integer from,
                                                                @RequestParam(value = "size", required = false) Integer size) {
         log.info("Get list of booking by owner: {} .", state);
-        BookingState stateParam = BookingState.from(state)
-                .orElseThrow(() -> new UnsupportedStatusException("Unknown state: UNSUPPORTED_STATUS"));
-        return bookingService.findAllBookingForAllItems(userId, stateParam, from, size);
+        return bookingService.findAllBookingForAllItems(userId, state, from, size);
     }
 }

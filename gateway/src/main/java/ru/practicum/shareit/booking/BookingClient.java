@@ -28,9 +28,9 @@ public class BookingClient extends BaseClient {
     }
 
     //Получение информации о бронировании
-    public ResponseEntity<Object> getBookings(long userId, BookingState state, Integer from, Integer size) {
+    public ResponseEntity<Object> getBookings(long userId, String state, Integer from, Integer size) {
         Map<String, Object> parameters = Map.of(
-                "state", state.name(),
+                "state", state,
                 "from", from,
                 "size", size
         );
@@ -57,9 +57,9 @@ public class BookingClient extends BaseClient {
     }
 
     //Все бронирования вещей владельца определенного по id
-    public ResponseEntity<Object>  findAllBookingForAllItems(long userId, BookingState state, Integer from, Integer size) {
+    public ResponseEntity<Object>  findAllBookingForAllItems(long userId, String state, Integer from, Integer size) {
         Map<String, Object> parameters = Map.of(
-                "state", state.name(),
+                "state", state,
                 "from", from,
                 "size", size
         );

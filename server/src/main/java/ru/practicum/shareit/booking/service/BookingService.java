@@ -118,7 +118,7 @@ public class BookingService {
         }
     }
 
-    public List<BookingResponseDto> findAllBookingByUserId(long userId, BookingState state, Integer from, Integer size) {
+    public List<BookingResponseDto> findAllBookingByUserId(long userId, String state, Integer from, Integer size) {
         //Проверка на существование пользователя
         PageRequest currentPageRequest = null;
         if (!userRepository.existsById(userId)) {
@@ -136,12 +136,16 @@ public class BookingService {
             throw new BadRequestException("Page should include at least one booking, now it's: " + size);
         }
 
-        //Возвращаем бронирования запрошенного статуса
+
         if (currentPageRequest == null) {
             int currentPage = (from / size);
             currentPageRequest = PageRequest.of(currentPage, size, Sort.by("start").descending());
         }
-        switch (state) {
+
+        BookingState stateParam = BookingState.from(state)
+                .orElseThrow(() -> new UnsupportedStatusException("Unknown state: UNSUPPORTED_STATUS"));
+        //Возвращаем бронирования запрошенного статуса
+        switch (stateParam) {
             case WAITING: {
                 return bookingRepository.getAllByBookerIdAndStatusOrderByStartDesc(userId, StatusOfBooking.WAITING, currentPageRequest)
                         .stream()
@@ -185,7 +189,7 @@ public class BookingService {
         }
     }
 
-    public List<BookingResponseDto> findAllBookingForAllItems(long userId, BookingState state, Integer from, Integer size) {
+    public List<BookingResponseDto> findAllBookingForAllItems(long userId, String state, Integer from, Integer size) {
         //Проверка на существование пользователя
         PageRequest currentPageRequest = null;
         if (!userRepository.existsById(userId)) {
@@ -204,12 +208,15 @@ public class BookingService {
             throw new BadRequestException("Page should include at least one booking, now it's: {}" + size);
         }
 
-        //Возвращаем бронирования запрошенного статуса
         if (currentPageRequest == null) {
             int currentPage = (from / size);
             currentPageRequest = PageRequest.of(currentPage, size, Sort.by("start").descending());
         }
-        switch (state) {
+
+        BookingState stateParam = BookingState.from(state)
+                .orElseThrow(() -> new UnsupportedStatusException("Unknown state: UNSUPPORTED_STATUS"));
+        //Возвращаем бронирования запрошенного статуса
+        switch (stateParam) {
             case WAITING: {
                 return bookingRepository.getAllByItemOwnerIdAndState(userId, StatusOfBooking.WAITING, currentPageRequest)
                         .stream()

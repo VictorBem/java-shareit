@@ -27,10 +27,8 @@ public class BookingController {
 											  @RequestParam(name = "state", defaultValue = "ALL") String state,
 			                                  @PositiveOrZero @RequestParam(name = "from", defaultValue = "0") Integer from,
 		                                      @Positive @RequestParam(name = "size", defaultValue = "10") Integer size) {
-		BookingState stateParam = BookingState.from(state)
-				.orElseThrow(() -> new UnsupportedStatusException("Unknown state: UNSUPPORTED_STATUS"));
-		log.info("Get booking with state {}, userId={}, from={}, size={}", stateParam.name(), userId, from, size);
-		return bookingClient.getBookings(userId, stateParam, from, size);
+		log.info("Get booking with state {}, userId={}, from={}, size={}", state, userId, from, size);
+		return bookingClient.getBookings(userId, state, from, size);
 	}
 
 	@PostMapping
@@ -62,9 +60,7 @@ public class BookingController {
 															 @RequestParam(value = "state", required = false, defaultValue = "ALL") String state,
 															 @RequestParam(value = "from", required = false, defaultValue = "0") Integer from,
 															 @RequestParam(value = "size", required = false, defaultValue = "99") Integer size) {
-		BookingState stateParam = BookingState.from(state)
-				.orElseThrow(() -> new UnsupportedStatusException("Unknown state: UNSUPPORTED_STATUS"));
-		log.info("Get list of booking by owner: {} .", state);
-		return bookingClient.findAllBookingForAllItems(userId, stateParam, from, size);
+		log.info("Get booking with state {}, userId={}, from={}, size={}", state, userId, from, size);
+		return bookingClient.findAllBookingForAllItems(userId, state, from, size);
 	}
 }
